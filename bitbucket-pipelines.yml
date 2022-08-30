@@ -1,0 +1,15 @@
+image: electronuserland/builder:wine
+
+pipelines:
+  branches:
+    dev:
+      - step:
+          name: "Build and Upload"
+          deployment: production
+          caches:
+            - node
+          script:
+            - npm i
+            - npm run release
+          artifacts:
+            - dist/**
