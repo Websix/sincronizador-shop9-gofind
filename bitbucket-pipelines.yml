@@ -10,6 +10,7 @@ pipelines:
             - node
           script:
             - npm i
-            - npm run release
+            - npm run electron:build
           artifacts:
-            - dist/**
+            - dist_electron/*.snap
+            - dist_electron/*.AppImage
