@@ -1,21 +1,24 @@
-# da-electron-sync
+# Sincronizador Shop9 - GoFind
 
-## Project setup
+## Dependencias:
+NodeJS v12
+
+## Instala dependencias
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Compila e faz hot-reload para desenvolvimento
 ```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
+npm run electron:serve
 ```
 
-### Lints and fixes files
+### Compila para produção
+```
+npm run electron:build
+```
+
+### Lint e corrige arquivos
 ```
 npm run lint
 ```

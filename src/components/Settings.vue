@@ -104,13 +104,14 @@
                 Ultima execução: {{ last_synced.format("DD/MM/YYYY HH:mm:ss") }}
               </div>
               <v-text-field
-                label="Sincronizar a cada"
-                type="number"
+                label="Regra CRON"
+                type="text"
                 min="1"
-                suffix="minutos"
-                v-model="configs['sync.frequency_in_minutes']"
-                :rules="[rules.positiveNumber]"
+                hint="Ex: '*/5 * * * *' para executar a cada 5 minutos"
+                v-model="configs['sync.cron_rule']"
+                :rules="[rules.validCron]"
               ></v-text-field>
+              <small class="mt-5">Para mais exemplos de como configurar o CRON, visite <a href="javascript:;" @click.prevent="openExternal('https://crontab.guru')" title="https://crontab.guru">este link</a></small>
             </v-card-text>
 
             <v-card-actions>
@@ -145,8 +146,9 @@
 <script>
 import { send as sendAsync, dispatch } from "../renderer";
 import moment from "moment";
+import { isValidCron } from 'cron-validator'
 const electron = window.require("electron");
-const { ipcRenderer } = electron;
+const { ipcRenderer, shell } = electron;
 
 export default {
   name: "Settings",
@@ -165,6 +167,7 @@ export default {
           (!value || (value >= 1 && value <= 65535)) ||
           "Deve ser uma porta válida: Entre 1 e 65535.",
         positiveNumber: value => value > 0 || "Deve ser um número positivo.",
+        validCron: value => isValidCron(value) || "Formato da regra CRON inválido",
         requiredWithoutNamedInstance(host) {
           return value => {
             return (/\\/i.test(host) === false ? !!value : true ) ||
@@ -248,6 +251,9 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+    openExternal(url) {
+      shell.openExternal(url);
     }
   },
   created() {

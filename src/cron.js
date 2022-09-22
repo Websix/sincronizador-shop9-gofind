@@ -21,9 +21,11 @@ export default {
     return events;
   },
   run() {
-    db.configs.get('sync.frequency_in_minutes').then((minutes) => {
-      currentJob = (new CronJob(`*/${(minutes || 1)} * * * *`, task, null, false, 'America/Sao_Paulo'));
-      currentJob.start();
+    db.configs.get('sync.cron_rule').then((cron_rule) => {
+      if (cron_rule) {
+        currentJob = (new CronJob(`${(cron_rule)}`, task, null, false, 'America/Sao_Paulo')); // cas
+        currentJob.start();
+      }
     })
     .catch(log.error);
   }
@@ -49,7 +51,7 @@ async function task() {
             'content-type': 'application/json',
             'accept': 'application/json',
             'user-agent': `${app.getName()}/${app.getVersion()}`,
-            ...(access_token ? { 'authorization' : 'Bearer ' + access_token } : {})
+            ...(access_token ? { 'X-Api-Key' : access_token } : {})
           }
         }
 
