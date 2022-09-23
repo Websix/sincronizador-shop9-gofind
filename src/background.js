@@ -1,14 +1,23 @@
 "use strict";
 
-import { app, protocol, BrowserWindow, Tray, Menu, nativeImage, ipcMain, nativeTheme } from "electron";
+import {
+  app,
+  protocol,
+  BrowserWindow,
+  Tray,
+  Menu,
+  nativeImage,
+  ipcMain,
+  nativeTheme
+} from "electron";
 import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import log from "electron-log";
-import replaceAll from "string.prototype.replaceall"
+import replaceAll from "string.prototype.replaceall";
 
 import path from "path";
-import cron from './cron';
-import dbMessageHandler from './db-message-handler'
+import cron from "./cron";
+import dbMessageHandler from "./db-message-handler";
 const isDevelopment = process.env.NODE_ENV !== "production";
 const appName = app.getName();
 
@@ -21,19 +30,19 @@ let mainWindow;
 let tray;
 
 let iconPath = () => {
-    return path.join(
-      (!isDevelopment ? __dirname : __static),
-      '../src/assets/',
-      (nativeTheme.shouldUseDarkColors ? 'tray-icon-light.png' : 'tray-icon.png')
-    );
+  return path.join(
+    !isDevelopment ? __dirname : __static,
+    "../src/assets/",
+    nativeTheme.shouldUseDarkColors ? "tray-icon-light.png" : "tray-icon.png"
+  );
 };
 
 app.setLoginItemSettings({
-    openAtLogin: true,
-    path: app.getPath("exe")
+  openAtLogin: true,
+  path: app.getPath("exe")
 });
 
-nativeTheme.on('updated', function theThemeHasChanged () {
+nativeTheme.on("updated", function theThemeHasChanged() {
   if (tray) {
     tray.setImage(iconPath());
   }
@@ -59,7 +68,7 @@ function createWindow() {
     },
     autoHideMenuBar: true,
     center: true,
-    thickFrame: true,
+    thickFrame: true
   });
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
@@ -74,34 +83,34 @@ function createWindow() {
 
   tray = null;
 
-  win.on("closed", (event) => {
+  win.on("closed", event => {
     mainWindow = null;
   });
 
-  win.on('minimize', sendToTray);
+  win.on("minimize", sendToTray);
 
-  win.on('restore', restoreFromTray);
+  win.on("restore", restoreFromTray);
 
-  win.on('close', function (event) {
-      if(!app.isQuiting){
-          sendToTray(event);
-      }
-      return false;
+  win.on("close", function(event) {
+    if (!app.isQuiting) {
+      sendToTray(event);
+    }
+    return false;
   });
   return win;
 }
 
 function sendToTray(event) {
-    event.preventDefault();
-    if (mainWindow) {
-      mainWindow.setSkipTaskbar(true);
-      mainWindow.hide();
-      // mainWindow = null;
-    }
-    tray = createTray();
-    if (process.platform ===  'darwin') {
-      app.dock.hide();
-    }
+  event.preventDefault();
+  if (mainWindow) {
+    mainWindow.setSkipTaskbar(true);
+    mainWindow.hide();
+    // mainWindow = null;
+  }
+  tray = createTray();
+  if (process.platform === "darwin") {
+    app.dock.hide();
+  }
 }
 
 function restoreFromTray(event) {
@@ -111,45 +120,46 @@ function restoreFromTray(event) {
   }
   mainWindow.show();
   mainWindow.setSkipTaskbar(false);
-  if (process.platform ===  'darwin') {
-    app.dock.show()
+  if (process.platform === "darwin") {
+    app.dock.show();
   }
 }
 
 function createTray() {
-    let tray = new Tray(iconPath());
+  let tray = new Tray(iconPath());
 
-    const contextMenu = Menu.buildFromTemplate([
-        {
-            label: 'Abrir',
-            click: restoreFromTray
-        },
-        {
-            label: 'Encerrar', click: function () {
-                app.isQuiting = true;
-                app.quit();
-            }
-        }
-    ]);
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Abrir",
+      click: restoreFromTray
+    },
+    {
+      label: "Encerrar",
+      click: function() {
+        app.isQuiting = true;
+        app.quit();
+      }
+    }
+  ]);
 
-    tray.on('double-click', restoreFromTray);
-    tray.setToolTip(`${app.getName()} - ${app.getVersion()}`);
-    tray.setContextMenu(contextMenu);
-    return tray;
+  tray.on("double-click", restoreFromTray);
+  tray.setToolTip(`${app.getName()} - ${app.getVersion()}`);
+  tray.setContextMenu(contextMenu);
+  return tray;
 }
 
-const gotTheLock = app.requestSingleInstanceLock()
+const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
-  app.quit()
+  app.quit();
 } else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
+  app.on("second-instance", (event, commandLine, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
     }
-  })
+  });
 }
 
 app.on("activate", () => {
@@ -160,7 +170,7 @@ app.on("activate", () => {
   }
 });
 
-app.on('before-quit', function () {
+app.on("before-quit", function() {
   app.isQuiting = true;
 });
 
@@ -195,23 +205,22 @@ if (isDevelopment) {
   }
 }
 
-ipcMain.on('database-query', dbMessageHandler);
-ipcMain.on('trigger-app-relaunch', () => {
+ipcMain.on("database-query", dbMessageHandler);
+ipcMain.on("trigger-app-relaunch", () => {
   app.relaunch();
   app.quit();
 });
 
-cron.events.on('cron_status', (status) => {
+cron.events.on("cron_status", status => {
   if (mainWindow) {
-    mainWindow.send('cron_status', status);
+    mainWindow.send("cron_status", status);
   }
 });
 
-cron.events.on('cron_finished', () => {
+cron.events.on("cron_finished", () => {
   if (mainWindow) {
-    mainWindow.send('cron_finished');
+    mainWindow.send("cron_finished");
   }
 });
 
 cron.run();
-

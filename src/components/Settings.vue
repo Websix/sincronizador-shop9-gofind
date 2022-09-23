@@ -111,7 +111,15 @@
                 v-model="configs['sync.cron_rule']"
                 :rules="[rules.validCron]"
               ></v-text-field>
-              <small class="mt-5">Para mais exemplos de como configurar o CRON, visite <a href="javascript:;" @click.prevent="openExternal('https://crontab.guru')" title="https://crontab.guru">este link</a></small>
+              <small class="mt-5"
+                >Para mais exemplos de como configurar o CRON, visite
+                <a
+                  href="javascript:;"
+                  @click.prevent="openExternal('https://crontab.guru')"
+                  title="https://crontab.guru"
+                  >este link</a
+                ></small
+              >
             </v-card-text>
 
             <v-card-actions>
@@ -146,7 +154,7 @@
 <script>
 import { send as sendAsync, dispatch } from "../renderer";
 import moment from "moment";
-import { isValidCron } from 'cron-validator'
+import { isValidCron } from "cron-validator";
 const electron = window.require("electron");
 const { ipcRenderer, shell } = electron;
 
@@ -164,15 +172,19 @@ export default {
       rules: {
         required: value => !!value || "Campo obrigatório.",
         portNumber: value =>
-          (!value || (value >= 1 && value <= 65535)) ||
+          !value ||
+          (value >= 1 && value <= 65535) ||
           "Deve ser uma porta válida: Entre 1 e 65535.",
         positiveNumber: value => value > 0 || "Deve ser um número positivo.",
-        validCron: value => isValidCron(value) || "Formato da regra CRON inválido",
+        validCron: value =>
+          isValidCron(value) || "Formato da regra CRON inválido",
         requiredWithoutNamedInstance(host) {
           return value => {
-            return (/\\/i.test(host) === false ? !!value : true ) ||
-              "Campo obrigatório.";
-          }
+            return (
+              (/\\/i.test(host) === false ? !!value : true) ||
+              "Campo obrigatório."
+            );
+          };
         },
         rejectWithNamedInstance(host) {
           return value =>

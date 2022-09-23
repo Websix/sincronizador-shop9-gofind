@@ -5,8 +5,8 @@ module.exports = {
       nodeIntegration: true,
       builderOptions: {
         extraResources: [
-          'src/assets/tray-icon.png',
-          'src/assets/tray-icon-light.png'
+          "src/assets/tray-icon.png",
+          "src/assets/tray-icon-light.png"
         ]
       }
     }
