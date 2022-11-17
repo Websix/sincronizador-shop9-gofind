@@ -41,78 +41,136 @@ export default {
 
 async function task() {
   if (!isRunning) {
+
     isRunning = true;
     events.emit("cron_status", isRunning);
-    db.configs
-      .get("api.endpoint", "api.access_token")
-      .then(config => {
-        if (!config["api.endpoint"] || !("" + config["api.endpoint"]).trim()) {
-          throw new Error("api.endpoint config not set!");
+    const config = await db.configs.get("api.endpoint", "api.access_token");
+
+    if (!config["api.endpoint"] || !("" + config["api.endpoint"]).trim()) {
+      throw new Error("api.endpoint config not set!");
+    }
+
+    let endpoint = config["api.endpoint"];
+    let access_token = (config["api.access_token"] || "").trim();
+
+    let axiosConfig = {
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        "user-agent": `${app.getName()}/${app.getVersion()}`,
+        ...(access_token ? { "X-Api-Key": access_token } : {})
+      }
+    };
+
+    try {
+      const orders = await db.orders.pendingSync();
+      let perChunk = 2;
+      let results = [];
+      let requests = orders.slice(0);
+      const filiais = (await db.orders.filiais([3,5,6])).reduce((acc, curr) => {
+        acc[curr['Codigo']] = curr;
+        return acc;
+      }, {});
+
+      requests.splice(0, perChunk).forEach(async chunk => {
+        try {
+          response = await axios.post(
+            endpoint,
+            chunk.map(async row => {
+              const products = await db.orders.products(row['Ordem_Movimento']);
+              const filial = filiais[row['Filial_Codigo']];
+              // Todas as datas devem ser no formato padrão do JSON (yyyy-MM-dd'T'HH:mm:ss). Exemplo: "2018-01-01T07:00:00"
+              return {
+                "Id": row['Chave_Acesso'], // ID da NFe (SEFAZ).
+                "ide": { // Informações de emissão da NF
+                  "dhEmi": moment(row['Data_Emissao']).format(), // Data de emissão da NF
+                  "dhSaiEnt":  null, // Data de saida da NF
+                  "nNF": row['Numero'], // Número da nota fiscal
+                  "serie": row['Serie'] // Série da nota fiscal
+                },
+                "emit": {
+                  "CNPJ": filial['CNPJ'],
+                  "enderEmit": {
+                    "CEP": filial['CEP'],
+                    "fone": filial['Fone'],
+                    "nro": filial['Numero'],
+                    "UF": filial['UF'],
+                    "xBairro": filial['Bairro'],
+                    "xCpl": filial['Complemento'],
+                    "xLgr": filial['Endereco'],
+                    "xMun": filial['Cidade'],
+                    "xPais": null // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+                  },
+                  "IE": filial['Inscricao_Estadual'],
+                  "xNome": filial['Razao_Social'],
+                  "xFant": null
+                },
+                "dest": {
+                  "CNPJ": "",
+                  "RUC": "",
+                  "email": "",
+                  "enderDest": {
+                    "CEP": "",
+                    "fone": "",
+                    "nro": "",
+                    "UF": "",
+                    "xBairro": "",
+                    "xCpl": "",
+                    "xLgr": "",
+                    "xMun": "",
+                    "xPais": ""
+                  },
+                  "IE": "",
+                  "xNome": "",
+                  "xFant": ""
+                },
+                "entrega": {
+                  "CEP": "",
+                  "fone": "",
+                  "nro": "",
+                  "UF": "",
+                  "xBairro": "",
+                  "xCpl": "",
+                  "xLgr": "",
+                  "xMun": "",
+                  "xPais": ""
+                },
+                "det": products.map((prod) => ({
+                    "nItem": "",
+                    "prod": {
+                      "cEAN": "",
+                      "cEANTrib": "",
+                      "CFOP": "",
+                      "cProd": "",
+                      "NCM": "",
+                      "qCom": "",
+                      "qTrib": "",
+                      "uCom": "",
+                      "uTrib": "",
+                      "xProd": ""
+                    }
+                  }
+                ))
+              }
+            }),
+            axiosConfig
+          )
+        } catch (error) {
+          console.error(error.message);
         }
-
-        let apiUrl = config["api.endpoint"];
-        let endpoint = apiUrl.replace(/\/$/i, "") + "/customer";
-        let access_token = (config["api.access_token"] || "").trim();
-
-        let axiosConfig = {
-          headers: {
-            "content-type": "application/json",
-            accept: "application/json",
-            "user-agent": `${app.getName()}/${app.getVersion()}`,
-            ...(access_token ? { "X-Api-Key": access_token } : {})
-          }
-        };
-
-        return db.orders.all().then(async orders => {
-          let perChunk = 15;
-          let results = [];
-          let requests = orders.slice(0);
-
-          let sendBatch = async (chunks, results) => {
-            let curr;
-            try {
-              curr = await Promise.all(
-                chunks.map(async customer => {
-                  return axios
-                    .post(endpoint, [{}], axiosConfig)
-                    .catch(err => {
-                      log.error(err.message);
-                      if (err.response) {
-                        let { data } = err.response;
-                        log.warn(data.message);
-                        log.debug(data);
-                      }
-                      return err.response || {};
-                    })
-                    .then(res => {
-                      return res.status;
-                    });
-                })
-              );
-              results.push(curr);
-            } catch (err) {
-              throw err;
-            }
-            return curr !== undefined && requests.length
-              ? sendBatch(requests.splice(0, perChunk), results)
-              : results;
-          };
-          return sendBatch(requests.splice(0, perChunk), results).catch(
-            log.error
-          );
-        });
-      })
-      .then(r => {
-        db.configs.save({ key: "sync.last_synced", value: moment().format() });
-        events.emit("cron_finished");
-      })
-      .catch(log.error)
-      .finally(() => {
-        isRunning = false;
-        setTimeout(() => {
-          events.emit("cron_status", isRunning);
-        }, 3000);
       });
+    } catch (error) {
+        log.error(error.message)
+    } finally {
+      // db.configs.save({ key: "sync.last_synced", value: moment().format() });
+      events.emit("cron_finished");
+
+      isRunning = false;
+      setTimeout(() => {
+        events.emit("cron_status", isRunning);
+
+      }, 3000);
+    }
   }
 }
 

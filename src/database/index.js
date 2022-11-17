@@ -137,8 +137,9 @@ async function getMssqlConfig() {
 }
 
 const orders = {
-  async all() {
+  async pendingSync() {
     const pool = await mssqlConnection();
+    const params = await configs.get("sync.last_synced", )
     const last_synced = await configs.get("sync.last_synced");
     const after_date = moment(last_synced).isValid() ? moment(last_synced) : moment().startOf("day");
 
@@ -150,9 +151,10 @@ const orders = {
       JOIN dbo.View_Cli_For_Movimento cli
         ON nfe.Cli_For_Codigo = cli.Codigo
       WHERE nfe.Entrada_Saida = 'S'
-        AND CAST(nfe.Data AS DATE) >= CAST(${after_date.format(
+        AND CAST(nfe.Data AS DATE) >= CAST('${after_date.format(
           "YYYY-MM-DD"
-        )} AS DATE)
+        )}' AS DATE)
+        AND nfe.Documento_Cancelado = 0
         AND nfe.Filial_Codigo in (3,5,6) AND nfe.Data_Autorizacao IS NOT NULL
         AND EXISTS (SELECT 1 FROM dbo.View_Movimento_Prod_Serv m WHERE m.Ordem_Movimento = nfe.Ordem_Movimento AND m.Codigo_Fabricante = 39);
     `);
@@ -165,6 +167,7 @@ const orders = {
 
     const { recordsets } = await pool.request().query(`
       SELECT
+        Ordem,
         Ordem_Movimento,
         Codigo,
         Nome,
@@ -176,7 +179,9 @@ const orders = {
         Nome_Fabricante,
         NCM,
         Codigo_Barras
-      FROM dbo.View_Movimento_Prod_Serv WHERE Ordem_Movimento = ${orderId};
+      FROM dbo.View_Movimento_Prod_Serv
+      WHERE Ordem_Movimento = ${orderId}
+        AND Codigo_Fabricante = 39;
     `);
 
     return recordsets[0];
@@ -190,6 +195,22 @@ const orders = {
         *
       FROM dbo.View_Cli_For_Movimento
       WHERE Codigo = ${customerId};
+    `);
+
+    return recordsets[0];
+  },
+
+  async filiais(ids) {
+    const pool = await mssqlConnection();
+    if (ids !== undefined || ids !== null) {
+      ids = Array.isArray(ids) ? ids : [ids];
+    }
+
+    const { recordsets } = await pool.request().query(`
+      SELECT
+        *
+      FROM dbo.Filiais
+      ${ !!ids ? 'WHERE Codigo IN (' + ids.join(',') + ')' : ''};
     `);
 
     return recordsets[0];
