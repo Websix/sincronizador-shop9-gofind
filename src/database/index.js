@@ -139,7 +139,6 @@ async function getMssqlConfig() {
 const orders = {
   async pendingSync() {
     const pool = await mssqlConnection();
-    const params = await configs.get("sync.last_synced", )
     const last_synced = await configs.get("sync.last_synced");
     const after_date = moment(last_synced).isValid() ? moment(last_synced) : moment().startOf("day");
 
