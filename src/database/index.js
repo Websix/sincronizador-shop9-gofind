@@ -145,8 +145,25 @@ const orders = {
 
     const { recordsets } = await pool.request().query(`
       SELECT
-        nfe.*,
-        cli.*
+        nfe.Ordem_Movimento,
+        nfe.Filial_Codigo,
+        nfe.Chave_Acesso,
+        nfe.Data_Emissao,
+        nfe.Numero as Numero_NFe,
+        nfe.Serie,
+
+        cli.CNPJ,
+        cli.CEP,
+        cli.Fone_1,
+        cli.Numero,
+        cli.Estado,
+        cli.Bairro,
+        cli.Complemento,
+        cli.Endereco,
+        cli.Cidade,
+        cli.Inscricao_Estadual_PF,
+        cli.Nome,
+        cli.Fantasia
       FROM dbo.View_Movimento_Resumo_NFe nfe
       JOIN dbo.View_Cli_For_Movimento cli
         ON nfe.Cli_For_Codigo = cli.Codigo
