@@ -166,7 +166,7 @@ async function task() {
     } catch (error) {
         log.error(error.message)
     } finally {
-      // db.configs.save({ key: "sync.last_synced", value: moment().format() });
+      await db.configs.save({ key: "sync.last_synced", value: moment().format() });
       events.emit("cron_finished");
       isRunning = false;
 
