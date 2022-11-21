@@ -3,6 +3,10 @@
 ## Dependencias:
 NodeJS v12
 
+## Docker
+
+É possivel executar via Docker, basta rodar ```docker-compose run builder``` para iniciar o conteiner, a partir dele é possivel rodar todos os comandos abaixo;
+
 ## Instala dependencias
 ```
 npm install
@@ -14,6 +18,7 @@ npm run electron:serve
 ```
 
 ### Compila para produção
+
 ```
 npm run electron:build
 ```
