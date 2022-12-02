@@ -77,48 +77,49 @@ async function task() {
             const filial = filiais[row['Filial_Codigo']];
             // Todas as datas devem ser no formato padrão do JSON (yyyy-MM-dd'T'HH:mm:ss). Exemplo: "2018-01-01T07:00:00"
             return {
-              "Id": row['Chave_Acesso'], // ID da NFe (SEFAZ).
-              "ide": { // Informações de emissão da NF
-                "dhEmi": moment(row['Data_Emissao']).format(), // Data de emissão da NF
-                "dhSaiEnt":  null, // Data de saida da NF
-                "nNF": row['Numero_NFe'], // Número da nota fiscal
-                "serie": row['Serie'], // Série da nota fiscal
+              Id: row["Chave_Acesso"], // ID da NFe (SEFAZ).
+              ide: {
+                // Informações de emissão da NF
+                dhEmi: moment(row["Data_Emissao"]).format(), // Data de emissão da NF
+                // dhSaiEnt: null, // Data de saida da NF
+                nNF: row["Numero_NFe"], // Número da nota fiscal
+                serie: row["Serie"], // Série da nota fiscal
               },
-              "emit": {
-                "CNPJ": filial['CNPJ'],
-                "enderEmit": {
-                  "CEP": filial['CEP'],
-                  "fone": filial['Fone'],
-                  "nro": filial['Numero'],
-                  "UF": filial['UF'],
-                  "xBairro": filial['Bairro'],
-                  "xCpl": filial['Complemento'],
-                  "xLgr": filial['Endereco'],
-                  "xMun": filial['Cidade'],
-                  "xPais": null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+              emit: {
+                CNPJ: filial["CNPJ"].replaceAll(/\D/g, ""),
+                enderEmit: {
+                  CEP: filial["CEP"],
+                  fone: filial["Fone"],
+                  nro: filial["Numero"],
+                  UF: filial["UF"],
+                  xBairro: filial["Bairro"],
+                  xCpl: filial["Complemento"],
+                  xLgr: filial["Endereco"],
+                  xMun: filial["Cidade"],
+                  xPais: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 },
-                "IE": filial['Inscricao_Estadual'],
-                "xNome": filial['Razao_Social'],
-                "xFant": null,
+                IE: filial["Inscricao_Estadual"],
+                xNome: filial["Razao_Social"],
+                xFant: null,
               },
-              "dest": {
-                "CNPJ": row['CNPJ'],
-                "RUC": null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
-                "email": null,
-                "enderDest": {
-                  "CEP": row['CEP'],
-                  "fone": (row['Fone_1'] || '').replaceAll(/\D/g, ''),
-                  "nro": row['Numero'],
-                  "UF": row['Estado'],
-                  "xBairro": row['Bairro'],
-                  "xCpl": row['Complemento'],
-                  "xLgr": row['Endereco'],
-                  "xMun": row['Cidade'],
-                  "xPais": null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+              dest: {
+                CNPJ: row["CNPJ"].replaceAll(/\D/g, ""),
+                RUC: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+                email: null,
+                enderDest: {
+                  CEP: row["CEP"],
+                  fone: (row["Fone_1"] || "").replaceAll(/\D/g, ""),
+                  nro: row["Numero"],
+                  UF: row["Estado"],
+                  xBairro: row["Bairro"],
+                  xCpl: row["Complemento"],
+                  xLgr: row["Endereco"],
+                  xMun: row["Cidade"],
+                  xPais: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 },
-                "IE": row['Inscricao_Estadual_PF'],
-                "xNome": row['Nome'],
-                "xFant": row['Fantasia'],
+                IE: row["Inscricao_Estadual_PF"],
+                xNome: row["Nome"],
+                xFant: row["Fantasia"],
               },
               // "entrega": { // opcional
               //   "CEP": "",
@@ -131,23 +132,25 @@ async function task() {
               //   "xMun": "",
               //   "xPais": "",
               // },
-              "det": products.map((prod, index) => ({
-                  "nItem": 1 + index,
-                  "prod": {
-                    "cEAN": prod['Codigo_Barras'],
-                    "cEANTrib": prod['EAN_Tributavel'],
-                    "CFOP": prod['CFOP_NF'],
-                    "cProd": prod['Codigo'],
-                    "NCM": prod['NCM'],
-                    "qCom": parseInt(prod['Quantidade'] || 0),
-                    // "qTrib": prod['Quantidade'], // opcional
-                    "uCom": prod['Nome_Unidade_Venda'] === 'CJ' ? 'UN' : prod['Nome_Unidade_Venda'],
-                    // "uTrib": "",
-                    "xProd": prod['Nome'],
-                  },
-                }
-              ))
-            }
+              det: products.map((prod, index) => ({
+                nItem: 1 + index,
+                prod: {
+                  cEAN: prod["Codigo_Barras"],
+                  cEANTrib: prod["EAN_Tributavel"],
+                  CFOP: prod["CFOP_NF"],
+                  cProd: prod["Codigo"],
+                  NCM: prod["NCM"],
+                  qCom: parseInt(prod["Quantidade"] || 0),
+                  // "qTrib": prod['Quantidade'], // opcional
+                  uCom:
+                    prod["Nome_Unidade_Venda"] === "CJ"
+                      ? "UN"
+                      : prod["Nome_Unidade_Venda"],
+                  // "uTrib": "",
+                  xProd: prod["Nome"],
+                },
+              })),
+            };
           }))).reduce((acc, item) => {
             if (item.status === 'fulfilled') {
               acc.push(item.value);
