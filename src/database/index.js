@@ -151,7 +151,12 @@ const orders = {
         nfe.Numero as Numero_NFe,
         nfe.Serie,
 
-        cli.CNPJ,
+        CASE
+          WHEN nfe.Cli_For_Fisica_Juridica = 'F' THEN cli.CPF_Sem_Literais
+          WHEN nfe.Cli_For_Fisica_Juridica = 'J' THEN cli.CNPJ_Sem_Literais
+        ELSE null
+        END as CliDoc,
+
         cli.CEP,
         cli.Fone_1,
         cli.Numero,
@@ -162,7 +167,12 @@ const orders = {
         cli.Cidade,
         cli.Inscricao_Estadual_PF,
         cli.Nome,
-        cli.Fantasia
+
+        CASE
+          WHEN nfe.Cli_For_Fisica_Juridica = 'F' THEN ''
+          WHEN nfe.Cli_For_Fisica_Juridica = 'J' THEN cli.Fantasia
+        ELSE null
+        END as Fantasia
       FROM dbo.View_Movimento_Resumo_NFe nfe
       JOIN dbo.View_Cli_For_Movimento cli
         ON nfe.Cli_For_Codigo = cli.Codigo
@@ -233,7 +243,21 @@ const orders = {
   }
 };
 
+const filials = {
+  async all() {
+    const pool = await mssqlConnection();
+    const { recordsets } = await pool.request().query(`
+      SELECT Ordem, Codigo, Nome
+      FROM dbo.Filiais
+      ORDER BY Ordem ASC;
+    `);
+
+    return recordsets[0];
+  }
+}
+
 export default {
   configs,
+  filials,
   orders
 };

@@ -103,7 +103,7 @@ async function task() {
                 xFant: null,
               },
               dest: {
-                CNPJ: row["CNPJ"].replaceAll(/\D/g, ""),
+                CNPJ: row["CliDoc"].replaceAll(/\D/g, ""),
                 RUC: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 email: null,
                 enderDest: {
