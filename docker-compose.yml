@@ -1,0 +1,32 @@
+version: '3'
+
+volumes:
+  db_data:
+  node_modules:
+
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: always
+    environment:
+      SA_PASSWORD: "M4tr1x123"
+      ACCEPT_EULA: "Y"
+    volumes:
+      # Volume dos dados
+      - db_data:/var/opt/mssql/
+    ports:
+      - 1433:1433
+
+  builder:
+    image: electronuserland/builder:wine
+    restart: 'no'
+    # env_file:
+    #   - ''
+    environment:
+      ELECTRON_CACHE: "/root/.cache/electron"
+      ELECTRON_BUILDER_CACHE: "/root/.cache/electron-builder"
+    volumes:
+      - .:/project/
+      - node_modules:/projetc/node_modules
+      - ~/.cache/electron:/root/.cache/electron
+      - ~/.cache/electron-builder:/root/.cache/electron-builder
