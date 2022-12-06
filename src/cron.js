@@ -5,10 +5,12 @@ import axios from "axios";
 import db from "./database";
 import moment from "moment";
 import log from "electron-log";
+import { autoUpdater } from "electron-updater";
 
 var isRunning = false;
 var currentJob = null;
 var events = new EventEmitter();
+autoUpdater.logger = log;
 
 export default {
   get isRunning() {
@@ -33,6 +35,28 @@ export default {
             "America/Sao_Paulo"
           ); // cas
           currentJob.start();
+        }
+
+        if (process.env.NODE_ENV === "production" && !process.env.IS_TEST) {
+          (new CronJob(
+            '0 0 * * *', // diariamente meia noite
+            async () => {
+              autoUpdater.checkForUpdates()
+              autoUpdater.once('update-available', () => {
+                autoUpdater.downloadUpdate();
+                autoUpdater.once('update-downloaded', () => {
+                  if (isRunning) {
+                    events.once('cron_finished', autoUpdater.quitAndInstall)
+                  } else {
+                    autoUpdater.quitAndInstall()
+                  }
+                });
+              });
+            },
+            null,
+            false,
+            "America/Sao_Paulo"
+          )).start();
         }
       })
       .catch(log.error);
@@ -100,12 +124,12 @@ async function task() {
                 },
                 IE: filial["Inscricao_Estadual"],
                 xNome: filial["Razao_Social"],
-                xFant: null,
+                xFant: '',
               },
               dest: {
                 CNPJ: row["CliDoc"].replaceAll(/\D/g, ""),
                 RUC: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
-                email: null,
+                email: '',
                 enderDest: {
                   CEP: row["CEP"],
                   fone: (row["Fone_1"] || "").replaceAll(/\D/g, ""),
