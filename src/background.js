@@ -14,6 +14,7 @@ import { createProtocol } from "vue-cli-plugin-electron-builder/lib";
 import installExtension, { VUEJS_DEVTOOLS } from "electron-devtools-installer";
 import log from "electron-log";
 import replaceAll from "string.prototype.replaceall";
+import { autoUpdater } from "electron-updater";
 
 import path from "path";
 import cron from "./cron";
@@ -178,6 +179,11 @@ app.on("before-quit", function() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
+  if (!isDevelopment && !process.env.IS_TEST) {
+    autoUpdater.logger = log;
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     try {
