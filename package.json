@@ -2,7 +2,7 @@
   "name": "shop9-gofind-sync",
   "description": "Aplicativo para sincronização de pedidos da Shop9 para GoFind",
   "productName": "Sincronizador Shop9 - GoFind",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Websix Soluções Web",
     "email": "contato@websix.com.br"
