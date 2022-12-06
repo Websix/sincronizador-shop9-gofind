@@ -2,7 +2,7 @@
   "name": "shop9-gofind-sync",
   "description": "Aplicativo para sincronização de pedidos da Shop9 para GoFind",
   "productName": "Sincronizador Shop9 - GoFind",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "author": {
     "name": "Websix Soluções Web",
     "email": "contato@websix.com.br"
@@ -13,7 +13,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "rebuild": "electron-rebuild -f -a=x64 -w sqlite3",
-    "electron:build": "vue-cli-service electron:build -w --publish always",
+    "electron:build": "vue-cli-service electron:build -w -- -p always",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
     "postuninstall": "electron-builder install-app-deps"
