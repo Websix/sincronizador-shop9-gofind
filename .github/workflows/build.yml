@@ -24,6 +24,8 @@ jobs:
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
+        env:
+          AUTO_UPDATER_GITHUB_TOKEN: ${{ secrets.AUTO_UPDATER_GITHUB_TOKEN }}
         with:
           use_vue_cli: true
           args: "-p always"

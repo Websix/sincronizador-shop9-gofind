@@ -5,12 +5,11 @@ import axios from "axios";
 import db from "./database";
 import moment from "moment";
 import log from "electron-log";
-import { autoUpdater } from "electron-updater";
+import { updater } from "./updater";
 
 var isRunning = false;
 var currentJob = null;
 var events = new EventEmitter();
-autoUpdater.logger = log;
 
 export default {
   get isRunning() {
@@ -41,14 +40,14 @@ export default {
           (new CronJob(
             '0 0 * * *', // diariamente meia noite
             async () => {
-              autoUpdater.checkForUpdates()
-              autoUpdater.once('update-available', () => {
-                autoUpdater.downloadUpdate();
-                autoUpdater.once('update-downloaded', () => {
+              updater.checkForUpdates()
+              updater.once('update-available', () => {
+                updater.downloadUpdate();
+                updater.once('update-downloaded', () => {
                   if (isRunning) {
-                    events.once('cron_finished', autoUpdater.quitAndInstall)
+                    events.once('cron_finished', updater.quitAndInstall)
                   } else {
-                    autoUpdater.quitAndInstall()
+                    updater.quitAndInstall()
                   }
                 });
               });
@@ -120,7 +119,7 @@ async function task() {
                   xCpl: filial["Complemento"],
                   xLgr: filial["Endereco"],
                   xMun: filial["Cidade"],
-                  xPais: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+                  // xPais: '', // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 },
                 IE: filial["Inscricao_Estadual"],
                 xNome: filial["Razao_Social"],
@@ -128,7 +127,7 @@ async function task() {
               },
               dest: {
                 CNPJ: row["CliDoc"].replaceAll(/\D/g, ""),
-                RUC: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+                // RUC: ', // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 email: '',
                 enderDest: {
                   CEP: row["CEP"],
@@ -139,7 +138,7 @@ async function task() {
                   xCpl: row["Complemento"],
                   xLgr: row["Endereco"],
                   xMun: row["Cidade"],
-                  xPais: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
+                  // xPais: null, // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 },
                 IE: row["Inscricao_Estadual_PF"],
                 xNome: row["Nome"],
