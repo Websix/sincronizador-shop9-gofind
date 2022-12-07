@@ -167,7 +167,7 @@ const orders = {
         cli.Cidade,
         cli.Inscricao_Estadual_PF,
         cli.Nome,
-
+        nfe.Cli_For_Fisica_Juridica as TipoPessoa,
         CASE
           WHEN nfe.Cli_For_Fisica_Juridica = 'F' THEN ''
           WHEN nfe.Cli_For_Fisica_Juridica = 'J' THEN cli.Fantasia

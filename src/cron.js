@@ -126,7 +126,7 @@ async function task() {
                 xFant: '',
               },
               dest: {
-                CNPJ: `${(row["CliDoc"] || '').replaceAll(/\D/g, "")}`,
+                [`${row['TipoPessoa'] === 'F' ? 'CPF' : 'CNPJ'}`]: `${(row["CliDoc"] || '').replaceAll(/\D/g, "")}`,
                 // RUC: ', // Assume BR como padrao. Se for informar, precisa ser diferente de BR
                 email: '',
                 enderDest: {
