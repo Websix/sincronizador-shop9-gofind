@@ -27,7 +27,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.39",
     "mssql": "^6.2.3",
-    "sqlite3": "^5.0.0",
+    "sqlite3": "^5.1.5",
     "vue": "^2.6.11",
     "vuetify": "^2.6.10"
   },
